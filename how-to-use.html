@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comment Utiliser - Mon Véhicule</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="https://i.postimg.cc/FhccT3BF/logo-mon-vehicule.jpg" type="image/png">
+    <style>
+        body {
+            background-color: #1f2937;
+        }
+        .card-shadow {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased text-gray-300">
+    <!-- Header / Navbar -->
+    <header class="bg-gray-900/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-4">
+                    <img src="https://i.postimg.cc/FhccT3BF/logo-mon-vehicule.jpg" alt="Mon Véhicule Logo" class="h-10 w-auto rounded-full">
+                    <span class="text-xl font-bold" style="color: #D4AF37;">Gestionnaire de Véhicules</span>
+                </div>
+                <nav>
+                    <a class='text-sm font-semibold text-gray-300 hover:text-white transition-colors' href='/index.html'>Retour au formulaire</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto bg-gray-800 border border-gray-700 rounded-xl card-shadow p-8 space-y-6">
+            <h1 class="text-2xl font-bold text-white">Comment Utiliser l'Application</h1>
+
+            <div class="space-y-4 text-gray-300">
+                <p>Cette application est conçue pour vous aider à cataloguer rapidement des véhicules et à envoyer les informations vers Google Sheets.</p>
+
+                <h2 class="text-xl font-semibold text-amber-400 pt-4">Étapes Principales</h2>
+                <ol class="list-decimal list-inside space-y-2">
+                    <li><strong>Remplir le formulaire :</strong> Saisissez toutes les informations connues sur le véhicule. Si un champ n'est pas rempli, la valeur "Sur demande" sera utilisée.</li>
+                    <li><strong>Gérer les images :</strong> Ajoutez une image principale et une galerie. Utilisez les boutons "Upload" pour les héberger sur ImgBB et obtenir des liens publics.</li>
+                    <li><strong>Ajouter à la liste :</strong> Cliquez sur "➕ Ajouter à la liste" pour placer le véhicule dans le tableau de préparation en bas de page. Vous pouvez ajouter plusieurs véhicules avant de les envoyer.</li>
+                    <li><strong>Envoyer les données :</strong> Une fois votre liste prête, cliquez sur "🚀 Envoyer". Toutes les données du tableau seront envoyées à vos feuilles Google Sheets (principale et secondaire). La liste de préparation sera alors vidée.</li>
+                    <li><strong>Exporter (Optionnel) :</strong> Vous pouvez aussi cliquer sur "📊 Export Excel" pour télécharger un fichier Excel de la liste de préparation à tout moment.</li>
+                </ol>
+
+                <h2 class="text-xl font-semibold text-amber-400 pt-4">Installer l'Application (PWA)</h2>
+                <p>Pour un accès plus rapide, vous pouvez installer cette application sur votre ordinateur ou votre téléphone.</p>
+                <ul class="list-disc list-inside space-y-2">
+                    <li><strong>Sur Ordinateur (Chrome, Edge) :</strong> Cherchez l'icône d'installation (un écran avec une flèche vers le bas) dans la barre d'adresse et cliquez sur "Installer".</li>
+                    <li><strong>Sur Mobile (Android/Chrome) :</strong> Ouvrez le menu du navigateur (les trois points) et sélectionnez "Installer l'application" ou "Ajouter à l'écran d'accueil".</li>
+                    <li><strong>Sur Mobile (iOS/Safari) :</strong> Appuyez sur l'icône de partage, puis faites défiler vers le bas et sélectionnez "Sur l'écran d'accueil".</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

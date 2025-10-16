@@ -1,0 +1,1542 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Véhicule - Gestionnaire</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- PWA & Favicon -->
+    <link rel="icon" href="https://i.postimg.cc/FhccT3BF/logo-mon-vehicule.jpg" type="image/png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#D4AF37">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Mon Véhicule">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/FhccT3BF/logo-mon-vehicule.jpg">
+
+    <style>
+        body {
+            box-sizing: border-box;
+            background-color: #1f2937; /* gray-800 */
+            scroll-behavior: smooth;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .card-shadow {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+        }
+        .input-focus:focus {
+            border-color: #D4AF37; /* Or */
+            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.5);
+        }
+        .btn-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .animate-pulse-slow {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased text-gray-300">
+    <!-- Header / Navbar -->
+    <header class="bg-gray-900/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-4">
+                    <img src="https://i.postimg.cc/FhccT3BF/logo-mon-vehicule.jpg" alt="Mon Véhicule Logo" class="h-10 w-auto rounded-full">
+                    <span class="text-xl font-bold" style="color: #D4AF37;">Gestionnaire de Véhicules</span>
+                </div>
+                <nav>
+                    <a class='text-sm font-semibold text-gray-300 hover:text-white transition-colors' href='/how-to-use'>Comment Utiliser ?</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="min-h-screen">
+        <div class="container mx-auto px-4 py-8">
+            <!-- Main Form -->
+            <div class="max-w-7xl mx-auto bg-gray-800 border border-gray-700 rounded-xl card-shadow p-4 sm:p-6 md:p-8 fade-in">
+                <form id="productForm" class="space-y-8">
+                    <!-- Informations Générales -->
+                    <div class="border-b border-gray-700 pb-8">
+                        <h2 class="text-lg font-semibold leading-7 text-white flex items-center"><span class="text-2xl mr-3">🚗</span> 1. Informations Générales</h2>
+                        <p class="mt-1 text-sm leading-6 text-gray-400">Renseignez les informations principales du véhicule.</p>
+                        <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                            <div class="sm:col-span-3">
+                                <label for="id" class="block text-sm font-medium leading-6 text-gray-300">ID Véhicule</label>
+                                <input type="text" id="id" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Généré automatiquement" required>
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label for="marque" class="block text-sm font-medium leading-6 text-gray-300">Marque</label>
+                                <input type="text" id="marque" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Ex: Peugeot" required>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="modele" class="block text-sm font-medium leading-6 text-gray-300">Modèle</label>
+                                <input type="text" id="modele" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Ex: 208" required>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="annee" class="block text-sm font-medium leading-6 text-gray-300">Année</label>
+                                <input type="number" id="annee" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Ex: 2021">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="prix" class="block text-sm font-medium leading-6 text-gray-300">Prix (FCFA)</label>
+                                <input type="number" id="prix" step="1" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="1500000" required>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="kilometrage" class="block text-sm font-medium leading-6 text-gray-300">Kilométrage</label>
+                                <input type="number" id="kilometrage" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="80000">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="carburant" class="block text-sm font-medium leading-6 text-gray-300">Carburant</label>
+                                <input list="carburant-list" id="carburant" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Choisir ou écrire...">
+                                <datalist id="carburant-list">
+                                    <option value="Essence"></option>
+                                    <option value="Diesel"></option>
+                                    <option value="Électrique"></option>
+                                    <option value="Hybride"></option>
+                                    <option value="GPL"></option>
+                                    <option value="Éthanol"></option>
+                                </datalist>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="transmission" class="block text-sm font-medium leading-6 text-gray-300">Transmission</label>
+                                <input list="transmission-list" id="transmission" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Choisir ou écrire...">
+                                <datalist id="transmission-list">
+                                    <option value="Manuelle"></option>
+                                    <option value="Automatique"></option>
+                                    <option value="Séquentielle"></option>
+                                </datalist>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label for="description" class="block text-sm font-medium leading-6 text-gray-300">Description du véhicule</label>
+                            <div class="mt-2">
+                                <textarea id="description" rows="4" class="block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Description détaillée du véhicule..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Informations Fournisseur & Provenance -->
+                    <div class="border-b border-gray-700 pb-8">
+                        <h2 class="text-lg font-semibold leading-7 text-white flex items-center"><span class="text-2xl mr-3">👤</span> 2. Fournisseur & Provenance</h2>
+                        <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                            <div class="sm:col-span-2"><label for="fournisseur_nom" class="block text-sm font-medium leading-6 text-gray-300">Nom Fournisseur</label><input type="text" id="fournisseur_nom" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Nom du fournisseur"></div>
+                            <div class="sm:col-span-2"><label for="fournisseur_num" class="block text-sm font-medium leading-6 text-gray-300">N° Fournisseur</label><input type="text" id="fournisseur_num" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="0612345678"></div>
+                            <div class="sm:col-span-2"><label for="fournisseur_mail" class="block text-sm font-medium leading-6 text-gray-300">Email Fournisseur</label><input type="email" id="fournisseur_mail" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="contact@fournisseur.com"></div>
+                            <div class="sm:col-span-2"><label for="provenance" class="block text-sm font-medium leading-6 text-gray-300">Provenance</label><input type="text" id="provenance" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Ex: France"></div>
+                            <div class="sm:col-span-2"><label for="immatriculation" class="block text-sm font-medium leading-6 text-gray-300">Immatriculation</label><input type="text" id="immatriculation" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="AB-123-CD"></div>
+                            <div class="sm:col-span-2"><label for="vin" class="block text-sm font-medium leading-6 text-gray-300">N° VIN</label><input type="text" id="vin" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="N° de série"></div>
+                        </div>
+                    </div>
+
+                    <!-- Historique & État -->
+                    <div class="border-b border-gray-700 pb-8">
+                        <h2 class="text-lg font-semibold leading-7 text-white flex items-center"><span class="text-2xl mr-3">🛠️</span> 3. Historique & État</h2>
+                        <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                            <div class="sm:col-span-2"><label for="nb_proprietaires" class="block text-sm font-medium leading-6 text-gray-300">Nb. Propriétaires</label><input type="number" id="nb_proprietaires" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Ex: 2"></div>
+                            <div class="sm:col-span-4">
+                                <label for="historique_entretien" class="block text-sm font-medium leading-6 text-gray-300">Historique Entretien</label>
+                                <input list="historique_entretien-list" id="historique_entretien" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Choisir ou écrire...">
+                                <datalist id="historique_entretien-list">
+                                    <option value="Complet"></option>
+                                    <option value="Partiel"></option>
+                                    <option value="Inconnu"></option>
+                                    <option value="Sur demande"></option>
+                                </datalist>
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label for="accidents" class="block text-sm font-medium leading-6 text-gray-300">Accidents</label>
+                                <input list="accidents-list" id="accidents" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Choisir ou écrire...">
+                                <datalist id="accidents-list">
+                                    <option value="Aucun"></option>
+                                    <option value="Léger (réparé)"></option>
+                                    <option value="Majeur (réparé)"></option>
+                                    <option value="Non déclaré"></option>
+                                </datalist>
+                            </div>
+                            <div class="sm:col-span-3"><label for="garantie" class="block text-sm font-medium leading-6 text-gray-300">Garantie</label><input type="text" id="garantie" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="6 mois, 1 an..."></div>
+                            <div class="sm:col-span-2">
+                                <label for="etat_moteur" class="block text-sm font-medium leading-6 text-gray-300">État Moteur</label>
+                                <input list="etat_moteur-list" id="etat_moteur" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Choisir ou écrire..."><datalist id="etat_moteur-list"><option value="Excellent"></option><option value="Très bon"></option><option value="Bon"></option><option value="À réviser"></option></datalist>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="etat_freins" class="block text-sm font-medium leading-6 text-gray-300">État Freins</label>
+                                <input list="etat_freins-list" id="etat_freins" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Choisir ou écrire..."><datalist id="etat_freins-list"><option value="Neufs"></option><option value="Très bon"></option><option value="Bon (usure <50%)"></option><option value="À remplacer bientôt"></option></datalist>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="etat_pneus" class="block text-sm font-medium leading-6 text-gray-300">État Pneus</label>
+                                <input list="etat_pneus-list" id="etat_pneus" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Choisir ou écrire..."><datalist id="etat_pneus-list"><option value="Neufs"></option><option value="Très bon"></option><option value="Bon (usure <50%)"></option><option value="À remplacer bientôt"></option></datalist>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="etat_boite" class="block text-sm font-medium leading-6 text-gray-300">État Boîte</label>
+                                <input list="etat_boite-list" id="etat_boite" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Choisir ou écrire..."><datalist id="etat_boite-list"><option value="Excellente"></option><option value="Très bonne"></option><option value="Bonne"></option><option value="À réviser"></option></datalist>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="etat_carrosserie" class="block text-sm font-medium leading-6 text-gray-300">État Carrosserie</label>
+                                <input list="etat_carrosserie-list" id="etat_carrosserie" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Choisir ou écrire..."><datalist id="etat_carrosserie-list"><option value="Excellent"></option><option value="Très bon (micro-rayures)"></option><option value="Bon (rayures légères)"></option><option value="Passable (coups/bosses)"></option></datalist>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="etat_interieur" class="block text-sm font-medium leading-6 text-gray-300">État Intérieur</label>
+                                <input list="etat_interieur-list" id="etat_interieur" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Choisir ou écrire..."><datalist id="etat_interieur-list"><option value="Excellent"></option><option value="Très bon"></option><option value="Bon (usure normale)"></option><option value="Passable (taches/déchirures)"></option></datalist>
+                            </div>
+                            <div class="sm:col-span-full">
+                                <label for="doc_controle_technique" class="block text-sm font-medium leading-6 text-gray-300">Doc Contrôle Technique</label>
+                                <input list="doc_controle_technique-list" id="doc_controle_technique" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm" placeholder="Choisir ou écrire...">
+                                <datalist id="doc_controle_technique-list">
+                                    <option value="OK (-6 mois)"></option>
+                                    <option value="OK (+6 mois)"></option>
+                                    <option value="Contre-visite"></option>
+                                    <option value="Non disponible"></option>
+                                </datalist>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gestion des Images -->
+                    <div class="border-b border-gray-700 pb-8">
+                        <h2 class="text-lg font-semibold leading-7 text-white flex items-center"><span class="text-2xl mr-3">🖼️</span> 4. Images & Galerie</h2>
+                        <p class="mt-1 text-sm leading-6 text-gray-400">Ajoutez l'image principale et la galerie, puis uploadez-les sur ImgBB.</p>
+
+                        <!-- Upload d'images -->
+                        <div class="space-y-4">
+                            <div class="p-4 border border-gray-700 rounded-md">
+                                <label class="block text-sm font-medium leading-6 text-white mb-2">Image Principale</label>
+                                <div class="flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0 items-center">
+                                    <input type="file" id="image" accept="image/*" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500 cursor-pointer">
+                                    <input type="url" id="imageUrl" placeholder="Ou coller une URL d'image" class="block w-full rounded-md border-gray-600 bg-gray-700 shadow-sm input-focus sm:text-sm">
+                                    <button type="button" id="uploadMainImage" class="rounded-md bg-gray-200 px-3 py-2 text-sm font-semibold text-black shadow-sm hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-200 transition-all btn-hover whitespace-nowrap">📤 Upload</button>
+                                </div>
+                                <div id="mainImagePreview" class="mt-2"></div>
+                            </div>
+                            <div class="p-4 border border-gray-700 rounded-md">
+                                <label class="block text-sm font-medium leading-6 text-white mb-2">Galerie d'Images (optionnel)</label>
+                                <div class="flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0 mb-2 items-center">
+                                    <input type="file" id="galleryImages" accept="image/*" multiple class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500 cursor-pointer">
+                                    <button type="button" id="uploadGallery" class="rounded-md bg-gray-200 px-3 py-2 text-sm font-semibold text-black shadow-sm hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-200 transition-all btn-hover whitespace-nowrap">📤 Upload</button>
+                                </div>
+                                <div id="galleryPreview" class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2"></div>
+                            </div>
+                    </div>
+
+                        <!-- Statut d'upload -->
+                        <div id="uploadStatus" class="mt-4 p-4 bg-gray-900 rounded-lg" style="display: none;">
+                            <div class="flex items-center space-x-3 text-gray-300">
+                                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                <span class="text-sm text-gray-600">Upload vers ImgBB en cours...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Boutons d'action -->
+                    <div class="flex flex-wrap gap-4 justify-center pt-6">
+                        <button type="button" id="previewBtn" class="rounded-md bg-gray-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-600 hover:bg-gray-600 btn-hover transition-all duration-300" style="border-color: #D4AF37;">
+                            👁️ Aperçu
+                        </button>
+                        <button type="button" id="uploadAllBtn" class="rounded-md bg-gray-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-600 hover:bg-gray-600 btn-hover transition-all duration-300">
+                            📤 Upload toutes les images
+                        </button>
+                        <button type="button" id="addProductBtn" class="rounded-md px-4 py-2.5 text-sm font-semibold text-black shadow-sm btn-hover transition-all duration-300" style="background-color: #D4AF37; color: #111827;">
+                            ➕ Ajouter à la liste
+                        </button>
+                        <button type="button" id="exportExcelBtn" class="rounded-md bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 btn-hover transition-all duration-300">
+                            📊 Export Excel
+                        </button>
+                        <button type="button" id="exportGoogleBtn" style="background-color: #111827; border: 1px solid #D4AF37; color: #D4AF37;" class="rounded-md px-4 py-2.5 text-sm font-semibold shadow-sm hover:bg-opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500 btn-hover transition-all duration-300">
+                            🚀 Envoyer
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Aperçu du produit -->
+                <div id="productPreview" class="mt-8 p-6 bg-gray-50 rounded-xl" style="display: none;">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">👁️ Aperçu de la Fiche Véhicule</h3>
+                    <div id="previewContent" class="bg-white p-6 rounded-lg border"></div>
+                </div>
+            </div>
+
+            <!-- Tableau de préparation Google Sheets -->
+            <div class="max-w-7xl mx-auto bg-gray-800 border border-gray-700 rounded-xl card-shadow p-4 sm:p-6 md:p-8 mt-8 fade-in">
+                <h2 class="text-lg font-semibold leading-7 text-white mb-4 flex items-center"><span class="text-2xl mr-3">📦</span> Liste de Préparation</h2>
+                <div class="overflow-x-auto">
+                    <table id="productsTable" class="min-w-full divide-y divide-gray-200" style="display: none;">
+                        <thead class="bg-gray-50">
+                            <tr id="productsTableHeader">
+                                <!-- Les en-têtes seront générés dynamiquement -->
+                                <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody" class="bg-gray-800 divide-y divide-gray-700">
+                            <!-- Les lignes de produits seront ajoutées ici -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="noProductsMessage" class="text-center text-gray-400 py-8">
+                    <p>Aucun véhicule ajouté pour le moment.</p><p class="text-sm">Remplissez le formulaire et cliquez sur "➕ Ajouter à la liste".</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Configuration complète des champs spécifiques par catégorie
+       const categorySpecificFields = {
+            "Chaussures": [
+                { name: 'pointure', label: 'Pointure', type: 'text', placeholder: '39, 40, 41' },
+                { name: 'couleur', label: 'Couleur', type: 'text', placeholder: 'Noir, Blanc, Rouge' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Cuir, Toile' },
+                { name: 'type', label: 'Type', type: 'select', options: ['Baskets', 'Chaussures de ville', 'Bottes', 'Sandales', 'Escarpins'] },
+                { name: 'genre', label: 'Genre', type: 'select', options: ['Homme', 'Femme', 'Enfant', 'Unisexe'] },
+                { name: 'semelle', label: 'Semelle', type: 'text', placeholder: 'Caoutchouc, Cuir' },
+                { name: 'usage', label: 'Usage', type: 'text', options: ['Quotidien', 'Sport', 'Soirée', 'Travail'] }
+            ],
+            "Vêtements": [
+                { name: 'taille', label: 'Taille', type: 'text', placeholder: 'S, M, L, XL' },
+                { name: 'coupe', label: 'Coupe', type: 'select', options: ['Slim', 'Regular', 'Loose', 'Oversize'] },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Coton 100%' },
+                { name: 'couleur', label: 'Couleur', type: 'text', placeholder: 'Rouge, Bleu, Noir' },
+                { name: 'genre', label: 'Genre', type: 'select', options: ['Homme', 'Femme', 'Enfant', 'Unisexe'] },
+                { name: 'saison', label: 'Saison', type: 'select', options: ['Printemps', 'Été', 'Automne', 'Hiver', 'Toute saison'] },
+                { name: 'style', label: 'Style', type: 'text', placeholder: 'Casual, Formel, Sport' }
+            ],
+            "Sacs": [
+                { name: 'volume', label: 'Volume', type: 'text', placeholder: '20L, 30L' },
+                { name: 'type', label: 'Type', type: 'select', options: ['Sac à main', 'Sac à dos', 'Valise', 'Pochette', 'Cartable'] },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Cuir, Toile, Nylon' },
+                { name: 'couleur', label: 'Couleur', type: 'text', placeholder: 'Noir, Marron, Beige' },
+                { name: 'usage', label: 'Usage', type: 'select', options: ['Quotidien', 'Voyage', 'Travail', 'Sport', 'Soirée'] },
+                { name: 'genre', label: 'Genre', type: 'select', options: ['Homme', 'Femme', 'Unisexe'] }
+            ],
+            "Montres": [
+                { name: 'type', label: 'Type', type: 'select', options: ['Analogique', 'Numérique', 'Connectée', 'Chronographe'] },
+                { name: 'bracelet', label: 'Bracelet', type: 'text', placeholder: 'Cuir, Métal, Silicone' },
+                { name: 'cadran', label: 'Cadran', type: 'text', placeholder: 'Rond, Carré, 42mm' },
+                { name: 'marque', label: 'Marque', type: 'text', placeholder: 'Nom de la marque' },
+                { name: 'etancheite', label: 'Étanchéité', type: 'text', placeholder: '50m, 100m' },
+                { name: 'genre', label: 'Genre', type: 'select', options: ['Homme', 'Femme', 'Unisexe'] }
+            ],
+            "Lunettes": [
+                { name: 'type', label: 'Type', type: 'select', options: ['Soleil', 'Vue', 'Lecture', 'Protection'] },
+                { name: 'forme', label: 'Forme', type: 'select', options: ['Ronde', 'Carrée', 'Aviateur', 'Cat-eye', 'Sport'] },
+                { name: 'couleur', label: 'Couleur', type: 'text', placeholder: 'Noir, Marron, Transparent' },
+                { name: 'protection_uv', label: 'Protection UV', type: 'text', placeholder: 'UV400, Cat 3' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Plastique, Métal, Titane' },
+                { name: 'genre', label: 'Genre', type: 'select', options: ['Homme', 'Femme', 'Enfant', 'Unisexe'] }
+            ],
+            "Bijoux": [
+                { name: 'type', label: 'Type', type: 'select', options: ['Bague', 'Collier', 'Bracelet', 'Boucles d\'oreilles', 'Montre'] },
+                { name: 'metal', label: 'Métal', type: 'text', placeholder: 'Or, Argent, Acier' },
+                { name: 'pierre', label: 'Pierre', type: 'text', placeholder: 'Diamant, Perle, Zircon' },
+                { name: 'taille', label: 'Taille', type: 'text', placeholder: '54, 16cm, Réglable' },
+                { name: 'genre', label: 'Genre', type: 'select', options: ['Homme', 'Femme', 'Enfant', 'Unisexe'] },
+                { name: 'finition', label: 'Finition', type: 'text', placeholder: 'Poli, Mat, Brossé' }
+            ],
+            accessoires: [
+                { name: 'dimensions', label: 'Dimensions', type: 'text', placeholder: '10x5x2 cm' },
+                { name: 'compatibilite', label: 'Compatibilité', type: 'text', placeholder: 'iPhone, Samsung, Universel' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Plastique, Métal, Silicone' },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Protection, Support, Décoration' },
+                { name: 'couleur', label: 'Couleur', type: 'text', placeholder: 'Noir, Transparent, Coloré' },
+                { name: 'poids', label: 'Poids', type: 'number', placeholder: '50' }
+            ],
+            beaute_soins: [
+                { name: 'type_peau', label: 'Type de peau', type: 'select', options: ['Normale', 'Sèche', 'Grasse', 'Mixte', 'Sensible', 'Tous types'] },
+                { name: 'ingredients', label: 'Ingrédients', type: 'text', placeholder: 'Acide hyaluronique, Vitamine C' },
+                { name: 'format', label: 'Format', type: 'select', options: ['Crème', 'Sérum', 'Lotion', 'Gel', 'Huile', 'Masque'] },
+                { name: 'parfum', label: 'Parfum', type: 'text', placeholder: 'Sans parfum, Floral, Fruité' },
+                { name: 'volume', label: 'Volume', type: 'text', placeholder: '50ml, 100ml' },
+                { name: 'genre', label: 'Genre', type: 'select', options: ['Homme', 'Femme', 'Unisexe'] }
+            ],
+            parfums: [
+                { name: 'famille_olfactive', label: 'Famille olfactive', type: 'select', options: ['Floral', 'Oriental', 'Boisé', 'Frais', 'Fruité', 'Épicé'] },
+                { name: 'notes', label: 'Notes', type: 'text', placeholder: 'Rose, Vanille, Cèdre' },
+                { name: 'intensite', label: 'Intensité', type: 'select', options: ['Légère', 'Modérée', 'Intense', 'Très intense'] },
+                { name: 'format', label: 'Format', type: 'text', placeholder: '50ml, 100ml, Coffret' },
+                { name: 'genre', label: 'Genre', type: 'select', options: ['Homme', 'Femme', 'Unisexe'] }
+            ],
+            electronique: [
+                { name: 'marque', label: 'Marque', type: 'text', placeholder: 'Apple, Samsung, Sony' },
+                { name: 'modele', label: 'Modèle', type: 'text', placeholder: 'iPhone 15, Galaxy S24' },
+                { name: 'capacite', label: 'Capacité', type: 'text', placeholder: '128GB, 256GB' },
+                { name: 'connectivite', label: 'Connectivité', type: 'text', placeholder: 'WiFi, Bluetooth, 5G' },
+                { name: 'compatibilite', label: 'Compatibilité', type: 'text', placeholder: 'iOS, Android, Windows' },
+                { name: 'garantie', label: 'Garantie', type: 'text', placeholder: '1 an, 2 ans' }
+            ],
+            informatique: [
+                { name: 'processeur', label: 'Processeur', type: 'text', placeholder: 'Intel i7, AMD Ryzen 5' },
+                { name: 'ram', label: 'RAM', type: 'text', placeholder: '8GB, 16GB, 32GB' },
+                { name: 'stockage', label: 'Stockage', type: 'text', placeholder: '512GB SSD, 1TB HDD' },
+                { name: 'ecran', label: 'Écran', type: 'text', placeholder: '15.6", 4K, Full HD' },
+                { name: 'os', label: 'OS', type: 'select', options: ['Windows 11', 'macOS', 'Linux', 'Chrome OS'] },
+                { name: 'connectivite', label: 'Connectivité', type: 'text', placeholder: 'USB-C, HDMI, WiFi 6' },
+                { name: 'usage', label: 'Usage', type: 'select', options: ['Bureau', 'Gaming', 'Professionnel', 'Étudiant'] }
+            ],
+            gaming: [
+                { name: 'plateforme', label: 'Plateforme', type: 'select', options: ['PC', 'PlayStation', 'Xbox', 'Nintendo Switch', 'Mobile'] },
+                { name: 'genre', label: 'Genre', type: 'text', placeholder: 'Action, RPG, Sport, Stratégie' },
+                { name: 'editeur', label: 'Éditeur', type: 'text', placeholder: 'EA, Ubisoft, Nintendo' },
+                { name: 'pegi', label: 'PEGI', type: 'select', options: ['3', '7', '12', '16', '18'] },
+                { name: 'multijoueur', label: 'Multijoueur', type: 'select', options: ['Oui', 'Non', 'En ligne uniquement'] },
+                { name: 'edition', label: 'Édition', type: 'select', options: ['Standard', 'Deluxe', 'Collector', 'Gold'] }
+            ],
+            livres: [
+                { name: 'auteur', label: 'Auteur', type: 'text', placeholder: 'Nom de l\'auteur' },
+                { name: 'genre', label: 'Genre', type: 'text', placeholder: 'Roman, Science-fiction, Histoire' },
+                { name: 'langue', label: 'Langue', type: 'select', options: ['Français', 'Anglais', 'Espagnol', 'Allemand', 'Italien'] },
+                { name: 'format', label: 'Format', type: 'select', options: ['Broché', 'Relié', 'Poche', 'Numérique', 'Audio'] },
+                { name: 'pages', label: 'Pages', type: 'number', placeholder: '250' },
+                { name: 'isbn', label: 'ISBN', type: 'text', placeholder: '978-2-1234-5678-9' },
+                { name: 'edition', label: 'Édition', type: 'text', placeholder: 'Gallimard, Flammarion' }
+            ],
+            musique: [
+                { name: 'artiste', label: 'Artiste', type: 'text', placeholder: 'Nom de l\'artiste' },
+                { name: 'genre', label: 'Genre', type: 'text', placeholder: 'Pop, Rock, Jazz, Classique' },
+                { name: 'format', label: 'Format', type: 'select', options: ['CD', 'Vinyle', 'Numérique', 'Cassette'] },
+                { name: 'duree', label: 'Durée', type: 'text', placeholder: '45 min, 1h20' },
+                { name: 'label', label: 'Label', type: 'text', placeholder: 'Universal, Sony Music' }
+            ],
+            films_series: [
+                { name: 'titre', label: 'Titre', type: 'text', placeholder: 'Titre du film/série' },
+                { name: 'genre', label: 'Genre', type: 'text', placeholder: 'Action, Comédie, Drame' },
+                { name: 'format', label: 'Format', type: 'select', options: ['DVD', 'Blu-ray', '4K UHD', 'Numérique'] },
+                { name: 'langue', label: 'Langue', type: 'text', placeholder: 'Français, Anglais, VOSTFR' },
+                { name: 'duree', label: 'Durée', type: 'text', placeholder: '2h15, Saison 1' },
+                { name: 'realisateur', label: 'Réalisateur', type: 'text', placeholder: 'Nom du réalisateur' },
+                { name: 'acteurs', label: 'Acteurs', type: 'text', placeholder: 'Acteurs principaux' }
+            ],
+            jeux_jouets: [
+                { name: 'age', label: 'Âge', type: 'text', placeholder: '3-6 ans, 8+ ans' },
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Puzzle, Peluche, Construction' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Plastique, Bois, Tissu' },
+                { name: 'dimensions', label: 'Dimensions', type: 'text', placeholder: '30x20x10 cm' },
+                { name: 'marque', label: 'Marque', type: 'text', placeholder: 'LEGO, Playmobil, Fisher-Price' },
+                { name: 'educatif_creatif', label: 'Éducatif/créatif', type: 'select', options: ['Oui', 'Non', 'Les deux'] }
+            ],
+            sport_fitness: [
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Fitness, Musculation, Cardio' },
+                { name: 'taille', label: 'Taille', type: 'text', placeholder: 'S, M, L, Réglable' },
+                { name: 'poids', label: 'Poids', type: 'text', placeholder: '2kg, 5kg, 10kg' },
+                { name: 'niveau', label: 'Niveau', type: 'select', options: ['Débutant', 'Intermédiaire', 'Avancé', 'Professionnel'] },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Acier, Plastique, Caoutchouc' },
+                { name: 'pliable', label: 'Pliable', type: 'select', options: ['Oui', 'Non'] },
+                { name: 'intensite', label: 'Intensité', type: 'select', options: ['Faible', 'Modérée', 'Élevée'] }
+            ],
+            meubles: [
+                { name: 'dimensions', label: 'Dimensions', type: 'text', placeholder: '120x80x75 cm' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Bois, Métal, Verre' },
+                { name: 'style', label: 'Style', type: 'select', options: ['Moderne', 'Classique', 'Industriel', 'Scandinave', 'Vintage'] },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Salon, Chambre, Bureau' },
+                { name: 'couleur', label: 'Couleur', type: 'text', placeholder: 'Blanc, Noir, Chêne' },
+                { name: 'montage', label: 'Montage', type: 'select', options: ['Requis', 'Pré-monté', 'Service inclus'] }
+            ],
+            decoration: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Tableau, Vase, Coussin' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Toile, Céramique, Tissu' },
+                { name: 'couleur', label: 'Couleur', type: 'text', placeholder: 'Multicolore, Blanc, Doré' },
+                { name: 'style', label: 'Style', type: 'select', options: ['Moderne', 'Classique', 'Bohème', 'Minimaliste'] },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Mural, Table, Sol' }
+            ],
+            jardin: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Plante, Outil, Mobilier' },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Intérieur, Extérieur, Balcon' },
+                { name: 'dimensions', label: 'Dimensions', type: 'text', placeholder: '50cm, 1m, Variable' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Métal, Plastique, Bois' },
+                { name: 'saison', label: 'Saison', type: 'select', options: ['Printemps', 'Été', 'Automne', 'Hiver', 'Toute saison'] }
+            ],
+            outillage: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Perceuse, Marteau, Scie' },
+                { name: 'puissance', label: 'Puissance', type: 'text', placeholder: '500W, 18V, Manuel' },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Bricolage, Professionnel' },
+                { name: 'alimentation', label: 'Alimentation', type: 'select', options: ['Électrique', 'Batterie', 'Manuel', 'Pneumatique'] },
+                { name: 'marque', label: 'Marque', type: 'text', placeholder: 'Bosch, Makita, DeWalt' },
+                { name: 'securite', label: 'Sécurité', type: 'text', placeholder: 'Protection incluse, EPI requis' }
+            ],
+            automobile: [
+                { name: 'marque', label: 'Marque', type: 'text', placeholder: 'Peugeot, Renault, BMW' },
+                { name: 'modele', label: 'Modèle', type: 'text', placeholder: '308, Clio, Série 3' },
+                { name: 'annee', label: 'Année', type: 'number', placeholder: '2023' },
+                { name: 'carburant', label: 'Carburant', type: 'select', options: ['Essence', 'Diesel', 'Électrique', 'Hybride'] },
+                { name: 'transmission', label: 'Transmission', type: 'select', options: ['Manuelle', 'Automatique', 'CVT'] },
+                { name: 'couleur', label: 'Couleur', type: 'text', placeholder: 'Blanc, Noir, Gris' }
+            ],
+            moto_velo: [
+                { name: 'type', label: 'Type', type: 'select', options: ['Vélo', 'Moto', 'Scooter', 'Vélo électrique'] },
+                { name: 'taille', label: 'Taille', type: 'text', placeholder: 'M, L, 26", 29"' },
+                { name: 'usage', label: 'Usage', type: 'select', options: ['Ville', 'Route', 'VTT', 'Sport'] },
+                { name: 'marque', label: 'Marque', type: 'text', placeholder: 'Yamaha, Trek, Giant' },
+                { name: 'vitesse', label: 'Vitesse', type: 'text', placeholder: '21 vitesses, 125cc' },
+                { name: 'accessoires_inclus', label: 'Accessoires inclus', type: 'text', placeholder: 'Casque, Éclairage, Antivol' }
+            ],
+            alimentation: [
+                { name: 'poids', label: 'Poids', type: 'text', placeholder: '500g, 1kg, 2L' },
+                { name: 'ingredients', label: 'Ingrédients', type: 'text', placeholder: 'Ingrédients principaux' },
+                { name: 'origine', label: 'Origine', type: 'text', placeholder: 'France, Bio, Local' },
+                { name: 'date_limite', label: 'Date limite', type: 'text', placeholder: 'DLC, DLUO' },
+                { name: 'labels', label: 'Labels', type: 'text', placeholder: 'Bio, AOP, Label Rouge' },
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Frais, Surgelé, Conserve' }
+            ],
+            literie: [
+                { name: 'taille', label: 'Taille', type: 'select', options: ['90x190', '140x190', '160x200', '180x200'] },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Mousse, Ressorts, Latex' },
+                { name: 'fermete', label: 'Fermeté', type: 'select', options: ['Souple', 'Mi-ferme', 'Ferme', 'Très ferme'] },
+                { name: 'epaisseur', label: 'Épaisseur', type: 'text', placeholder: '20cm, 25cm, 30cm' },
+                { name: 'traitement_anti_acariens', label: 'Traitement anti-acariens', type: 'select', options: ['Oui', 'Non'] }
+            ],
+            rideaux_stores: [
+                { name: 'type', label: 'Type', type: 'select', options: ['Rideaux', 'Stores', 'Voilages', 'Occultants'] },
+                { name: 'dimensions', label: 'Dimensions', type: 'text', placeholder: '140x260cm, Sur mesure' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Coton, Polyester, Lin' },
+                { name: 'opacite', label: 'Opacité', type: 'select', options: ['Transparent', 'Tamisant', 'Occultant'] },
+                { name: 'fixation', label: 'Fixation', type: 'select', options: ['Œillets', 'Pattes', 'Plis', 'Coulissant'] }
+            ],
+            luminaires: [
+                { name: 'type', label: 'Type', type: 'select', options: ['Plafonnier', 'Suspension', 'Applique', 'Lampe de table'] },
+                { name: 'style', label: 'Style', type: 'select', options: ['Moderne', 'Classique', 'Industriel', 'Design'] },
+                { name: 'puissance', label: 'Puissance', type: 'text', placeholder: '60W, LED 12W' },
+                { name: 'source', label: 'Source', type: 'select', options: ['LED', 'Halogène', 'Incandescent', 'Fluocompacte'] },
+                { name: 'installation', label: 'Installation', type: 'select', options: ['Simple', 'Électricien requis', 'Plug & play'] }
+            ],
+            vaisselle: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Service, Assiettes, Verres' },
+                { name: 'matiere', label: 'Matière', type: 'select', options: ['Porcelaine', 'Grès', 'Verre', 'Mélamine'] },
+                { name: 'nombre_pieces', label: 'Nombre de pièces', type: 'number', placeholder: '6, 12, 18' },
+                { name: 'usage', label: 'Usage', type: 'select', options: ['Quotidien', 'Réception', 'Enfant', 'Extérieur'] },
+                { name: 'compatibilite_lave_vaisselle', label: 'Compatibilité lave-vaisselle', type: 'select', options: ['Oui', 'Non'] }
+            ],
+            ustensiles_cuisine: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Couteau, Casserole, Spatule' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Inox, Bois, Silicone' },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Cuisson, Découpe, Mélange' },
+                { name: 'ergonomie', label: 'Ergonomie', type: 'select', options: ['Droitier', 'Gaucher', 'Ambidextre'] },
+                { name: 'compatibilite', label: 'Compatibilité', type: 'text', placeholder: 'Induction, Lave-vaisselle' }
+            ],
+            rangement: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Boîte, Étagère, Armoire' },
+                { name: 'dimensions', label: 'Dimensions', type: 'text', placeholder: '40x30x20 cm' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Plastique, Carton, Métal' },
+                { name: 'capacite', label: 'Capacité', type: 'text', placeholder: '20L, 50L, Variable' },
+                { name: 'empilable', label: 'Empilable', type: 'select', options: ['Oui', 'Non'] }
+            ],
+            salle_bain: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Meuble, Accessoire, Robinetterie' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Céramique, Inox, Plastique' },
+                { name: 'dimensions', label: 'Dimensions', type: 'text', placeholder: '60x45x80 cm' },
+                { name: 'installation', label: 'Installation', type: 'select', options: ['Murale', 'Sur pied', 'Encastrée'] },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Lavabo, Douche, Rangement' }
+            ],
+            cuisine_equipee: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Meuble haut, Meuble bas, Plan de travail' },
+                { name: 'dimensions', label: 'Dimensions', type: 'text', placeholder: '60x60x72 cm' },
+                { name: 'finition', label: 'Finition', type: 'text', placeholder: 'Laqué, Bois, Stratifié' },
+                { name: 'electromenagers_inclus', label: 'Électroménagers inclus', type: 'text', placeholder: 'Four, Plaque, Évier' }
+            ],
+            climatisation: [
+                { name: 'type', label: 'Type', type: 'select', options: ['Split', 'Mobile', 'Réversible', 'Gainable'] },
+                { name: 'puissance', label: 'Puissance', type: 'text', placeholder: '2500W, 3500W' },
+                { name: 'surface_couverte', label: 'Surface couverte', type: 'text', placeholder: '25m², 35m²' },
+                { name: 'consommation', label: 'Consommation', type: 'text', placeholder: 'Classe A++, A+++' },
+                { name: 'installation', label: 'Installation', type: 'select', options: ['Professionnel requis', 'Plug & play'] }
+            ],
+            chauffage: [
+                { name: 'type', label: 'Type', type: 'select', options: ['Radiateur', 'Convecteur', 'Poêle', 'Chaudière'] },
+                { name: 'puissance', label: 'Puissance', type: 'text', placeholder: '1000W, 2000W' },
+                { name: 'technologie', label: 'Technologie', type: 'text', placeholder: 'Inertie, Rayonnant, Soufflant' },
+                { name: 'securite', label: 'Sécurité', type: 'text', placeholder: 'Thermostat, Arrêt automatique' },
+                { name: 'mobilite', label: 'Mobilité', type: 'select', options: ['Fixe', 'Mobile', 'Roulettes'] }
+            ],
+            instruments_musique: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Guitare, Piano, Violon' },
+                { name: 'marque', label: 'Marque', type: 'text', placeholder: 'Yamaha, Fender, Steinway' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Bois, Métal, Plastique' },
+                { name: 'niveau', label: 'Niveau', type: 'select', options: ['Débutant', 'Intermédiaire', 'Avancé', 'Professionnel'] },
+                { name: 'accessoires_inclus', label: 'Accessoires inclus', type: 'text', placeholder: 'Étui, Archet, Médiator' }
+            ],
+            materiel_artistique: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Pinceau, Toile, Crayon' },
+                { name: 'format', label: 'Format', type: 'text', placeholder: 'A4, 30x40cm, Variable' },
+                { name: 'couleur', label: 'Couleur', type: 'text', placeholder: 'Multicolore, Noir, Blanc' },
+                { name: 'technique', label: 'Technique', type: 'text', placeholder: 'Aquarelle, Huile, Acrylique' },
+                { name: 'usage', label: 'Usage', type: 'select', options: ['Débutant', 'Amateur', 'Professionnel'] }
+            ],
+            loisirs_creatifs: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Kit, Matériel, Accessoire' },
+                { name: 'niveau', label: 'Niveau', type: 'select', options: ['Débutant', 'Intermédiaire', 'Avancé'] },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Papier, Tissu, Perles' },
+                { name: 'theme', label: 'Thème', type: 'text', placeholder: 'Nature, Animaux, Abstrait' },
+                { name: 'age', label: 'Âge', type: 'text', placeholder: '6+ ans, 12+ ans, Adulte' }
+            ],
+            couture_tricot: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Fil, Aiguille, Patron' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Coton, Laine, Soie' },
+                { name: 'couleur', label: 'Couleur', type: 'text', placeholder: 'Rouge, Bleu, Multicolore' },
+                { name: 'format', label: 'Format', type: 'text', placeholder: '50g, 100g, Pelote' },
+                { name: 'compatibilite_machine', label: 'Compatibilité machine', type: 'select', options: ['Oui', 'Non', 'Manuel uniquement'] }
+            ],
+            modelisme: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Avion, Train, Voiture' },
+                { name: 'echelle', label: 'Échelle', type: 'text', placeholder: '1/72, 1/43, 1/18' },
+                { name: 'materiau', label: 'Matériau', type: 'text', placeholder: 'Plastique, Métal, Bois' },
+                { name: 'niveau', label: 'Niveau', type: 'select', options: ['Débutant', 'Intermédiaire', 'Expert'] },
+                { name: 'motorisation', label: 'Motorisation', type: 'select', options: ['Statique', 'Électrique', 'Thermique'] }
+            ],
+            photographie: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Appareil, Objectif, Accessoire' },
+                { name: 'resolution', label: 'Résolution', type: 'text', placeholder: '24MP, 4K, Full HD' },
+                { name: 'format', label: 'Format', type: 'text', placeholder: 'Reflex, Compact, Mirrorless' },
+                { name: 'connectivite', label: 'Connectivité', type: 'text', placeholder: 'WiFi, Bluetooth, USB' },
+                { name: 'accessoires', label: 'Accessoires', type: 'text', placeholder: 'Batterie, Chargeur, Sac' }
+            ],
+            scrapbooking: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Papier, Stickers, Album' },
+                { name: 'format', label: 'Format', type: 'text', placeholder: '30x30cm, A4, 12x12"' },
+                { name: 'theme', label: 'Thème', type: 'text', placeholder: 'Voyage, Famille, Nature' },
+                { name: 'couleur', label: 'Couleur', type: 'text', placeholder: 'Pastel, Vif, Neutre' },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Décoration, Fond, Bordure' }
+            ],
+            calligraphie: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Plume, Encre, Papier' },
+                { name: 'pointe', label: 'Pointe', type: 'text', placeholder: 'Fine, Moyenne, Large' },
+                { name: 'encre', label: 'Encre', type: 'text', placeholder: 'Noire, Bleue, Colorée' },
+                { name: 'format', label: 'Format', type: 'text', placeholder: 'A4, A5, Carnet' },
+                { name: 'usage', label: 'Usage', type: 'select', options: ['Débutant', 'Intermédiaire', 'Professionnel'] }
+            ],
+            fournitures_scolaires: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Cahier, Stylo, Trousse' },
+                { name: 'format', label: 'Format', type: 'text', placeholder: 'A4, A5, 17x22cm' },
+                { name: 'niveau', label: 'Niveau', type: 'select', options: ['Maternelle', 'Primaire', 'Collège', 'Lycée'] },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Français, Maths, Sciences' },
+                { name: 'compatibilite', label: 'Compatibilité', type: 'text', placeholder: 'Universel, Spécifique' }
+            ],
+            jeux_educatifs: [
+                { name: 'age', label: 'Âge', type: 'text', placeholder: '3-6 ans, 7-12 ans' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Maths, Français, Sciences' },
+                { name: 'theme', label: 'Thème', type: 'text', placeholder: 'Animaux, Géographie, Histoire' },
+                { name: 'niveau', label: 'Niveau', type: 'select', options: ['Débutant', 'Intermédiaire', 'Avancé'] },
+                { name: 'nombre_joueurs', label: 'Nombre de joueurs', type: 'text', placeholder: '1-4 joueurs, Solo' }
+            ],
+            livres_jeunesse: [
+                { name: 'age', label: 'Âge', type: 'text', placeholder: '0-3 ans, 6-9 ans, 10+ ans' },
+                { name: 'genre', label: 'Genre', type: 'text', placeholder: 'Conte, Aventure, Éducatif' },
+                { name: 'format', label: 'Format', type: 'select', options: ['Album', 'Roman', 'BD', 'Pop-up'] },
+                { name: 'langue', label: 'Langue', type: 'select', options: ['Français', 'Anglais', 'Bilingue'] },
+                { name: 'illustration', label: 'Illustration', type: 'select', options: ['Illustré', 'Photos', 'Texte seul'] }
+            ],
+            mobilier_enfant: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Lit, Bureau, Chaise' },
+                { name: 'dimensions', label: 'Dimensions', type: 'text', placeholder: '90x190cm, 80x60cm' },
+                { name: 'securite', label: 'Sécurité', type: 'text', placeholder: 'Normes CE, Angles arrondis' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Bois, MDF, Métal' },
+                { name: 'evolutif', label: 'Évolutif', type: 'select', options: ['Oui', 'Non'] }
+            ],
+            vetements_bebe: [
+                { name: 'taille', label: 'Taille', type: 'text', placeholder: 'Naissance, 3 mois, 6 mois' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Coton bio, Bambou' },
+                { name: 'securite', label: 'Sécurité', type: 'text', placeholder: 'Oeko-Tex, Sans produits chimiques' },
+                { name: 'saison', label: 'Saison', type: 'select', options: ['Été', 'Hiver', 'Mi-saison', 'Toute saison'] },
+                { name: 'genre', label: 'Genre', type: 'select', options: ['Garçon', 'Fille', 'Mixte'] }
+            ],
+            puericulture: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Biberon, Poussette, Siège auto' },
+                { name: 'securite', label: 'Sécurité', type: 'text', placeholder: 'Normes CE, i-Size' },
+                { name: 'age', label: 'Âge', type: 'text', placeholder: '0-6 mois, 6-36 mois' },
+                { name: 'format', label: 'Format', type: 'text', placeholder: '150ml, 250ml, Compact' },
+                { name: 'compatibilite', label: 'Compatibilité', type: 'text', placeholder: 'Universel, Marque spécifique' }
+            ],
+            yoga_meditation: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Tapis, Coussin, Bloc' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'PVC, Caoutchouc, Coton' },
+                { name: 'niveau', label: 'Niveau', type: 'select', options: ['Débutant', 'Intermédiaire', 'Avancé'] },
+                { name: 'usage', label: 'Usage', type: 'select', options: ['Yoga', 'Méditation', 'Pilates', 'Fitness'] },
+                { name: 'format', label: 'Format', type: 'text', placeholder: '183x61cm, Rond, Carré' }
+            ],
+            complements_alimentaires: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Vitamines, Minéraux, Probiotiques' },
+                { name: 'ingredients', label: 'Ingrédients', type: 'text', placeholder: 'Vitamine C, Magnésium' },
+                { name: 'posologie', label: 'Posologie', type: 'text', placeholder: '1 gélule/jour, 2 comprimés' },
+                { name: 'certification', label: 'Certification', type: 'text', placeholder: 'Bio, Vegan, Sans gluten' },
+                { name: 'format', label: 'Format', type: 'select', options: ['Gélules', 'Comprimés', 'Poudre', 'Liquide'] }
+            ],
+            huiles_essentielles: [
+                { name: 'plante', label: 'Plante', type: 'text', placeholder: 'Lavande, Eucalyptus, Tea tree' },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Diffusion, Massage, Inhalation' },
+                { name: 'format', label: 'Format', type: 'text', placeholder: '10ml, 30ml, 50ml' },
+                { name: 'certification', label: 'Certification', type: 'text', placeholder: 'Bio, HEBBD, 100% pure' },
+                { name: 'origine', label: 'Origine', type: 'text', placeholder: 'France, Madagascar, Australie' }
+            ],
+            materiel_medical: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Tensiomètre, Thermomètre, Pansement' },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Diagnostic, Soin, Prévention' },
+                { name: 'format', label: 'Format', type: 'text', placeholder: 'Portable, Fixe, Jetable' },
+                { name: 'precision', label: 'Précision', type: 'text', placeholder: '±0.1°C, ±3mmHg' },
+                { name: 'homologation', label: 'Homologation', type: 'text', placeholder: 'CE médical, FDA' }
+            ],
+            produits_hygiene: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Savon, Dentifrice, Déodorant' },
+                { name: 'format', label: 'Format', type: 'text', placeholder: '100ml, 250ml, Solide' },
+                { name: 'ingredients', label: 'Ingrédients', type: 'text', placeholder: 'Naturels, Bio, Sans sulfates' },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Quotidien, Sensible, Enfant' },
+                { name: 'certification', label: 'Certification', type: 'text', placeholder: 'Bio, Vegan, Cruelty-free' }
+            ],
+            soins_capillaires: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Shampoing, Après-shampoing, Masque' },
+                { name: 'format', label: 'Format', type: 'text', placeholder: '250ml, 500ml, Solide' },
+                { name: 'ingredients', label: 'Ingrédients', type: 'text', placeholder: 'Kératine, Argan, Sans sulfates' },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Cheveux gras, secs, colorés' },
+                { name: 'texture', label: 'Texture', type: 'select', options: ['Liquide', 'Crème', 'Gel', 'Mousse'] }
+            ],
+            materiaux: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Bois, Métal, Plastique' },
+                { name: 'dimensions', label: 'Dimensions', type: 'text', placeholder: '2x4m, Épaisseur 10mm' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Chêne, Acier, PVC' },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Construction, Rénovation' },
+                { name: 'certification', label: 'Certification', type: 'text', placeholder: 'FSC, CE, NF' }
+            ],
+            equipements_chantier: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Échafaudage, Bétonnière, Grue' },
+                { name: 'puissance', label: 'Puissance', type: 'text', placeholder: '2000W, 5HP, Manuel' },
+                { name: 'securite', label: 'Sécurité', type: 'text', placeholder: 'Normes EN, Certification CE' },
+                { name: 'mobilite', label: 'Mobilité', type: 'select', options: ['Fixe', 'Mobile', 'Transportable'] },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Gros œuvre, Finition' }
+            ],
+            electricite: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Câble, Prise, Interrupteur' },
+                { name: 'tension', label: 'Tension', type: 'text', placeholder: '12V, 220V, 380V' },
+                { name: 'compatibilite', label: 'Compatibilité', type: 'text', placeholder: 'Standard français, Européen' },
+                { name: 'installation', label: 'Installation', type: 'select', options: ['Encastré', 'Apparent', 'Saillie'] },
+                { name: 'securite', label: 'Sécurité', type: 'text', placeholder: 'IP44, IP65, Différentiel' }
+            ],
+            plomberie: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Tuyau, Raccord, Robinet' },
+                { name: 'diametre', label: 'Diamètre', type: 'text', placeholder: '12mm, 16mm, 20mm' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Cuivre, PVC, Multicouche' },
+                { name: 'installation', label: 'Installation', type: 'select', options: ['Soudure', 'Vissage', 'Emboîtement'] },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Eau froide, Eau chaude, Évacuation' }
+            ],
+            quincaillerie: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Vis, Cheville, Serrure' },
+                { name: 'dimensions', label: 'Dimensions', type: 'text', placeholder: '4x40mm, M8, Ø6mm' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Acier, Inox, Laiton' },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Bois, Béton, Métal' },
+                { name: 'resistance', label: 'Résistance', type: 'text', placeholder: 'Charge max, Couple' }
+            ],
+            equipements_protection: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Casque, Gants, Chaussures' },
+                { name: 'norme', label: 'Norme', type: 'text', placeholder: 'EN 397, EN 388, S3' },
+                { name: 'taille', label: 'Taille', type: 'text', placeholder: 'S, M, L, 42-46' },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Chantier, Industrie, Laboratoire' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Polyéthylène, Cuir, Kevlar' }
+            ],
+            bagages: [
+                { name: 'type', label: 'Type', type: 'select', options: ['Valise', 'Sac de voyage', 'Sac à dos', 'Vanity'] },
+                { name: 'dimensions', label: 'Dimensions', type: 'text', placeholder: '55x40x20cm, Cabine, Soute' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Polycarbonate, Toile, Cuir' },
+                { name: 'roues', label: 'Roues', type: 'select', options: ['2 roues', '4 roues', 'Sans roues'] },
+                { name: 'securite', label: 'Sécurité', type: 'text', placeholder: 'Cadenas TSA, Fermeture éclair' }
+            ],
+            accessoires_voyage: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Adaptateur, Oreiller, Trousse' },
+                { name: 'usage', label: 'Usage', type: 'text', placeholder: 'Avion, Train, Voiture' },
+                { name: 'format', label: 'Format', type: 'text', placeholder: 'Compact, Pliable, Gonflable' },
+                { name: 'compatibilite', label: 'Compatibilité', type: 'text', placeholder: 'Universel, Europe, USA' },
+                { name: 'securite', label: 'Sécurité', type: 'text', placeholder: 'RFID, Antivol, Étanche' }
+            ],
+            guides_touristiques: [
+                { name: 'destination', label: 'Destination', type: 'text', placeholder: 'Paris, Japon, Europe' },
+                { name: 'langue', label: 'Langue', type: 'select', options: ['Français', 'Anglais', 'Espagnol', 'Allemand'] },
+                { name: 'format', label: 'Format', type: 'select', options: ['Papier', 'Numérique', 'Application'] },
+                { name: 'edition', label: 'Édition', type: 'text', placeholder: '2024, Dernière édition' },
+                { name: 'thematique', label: 'Thématique', type: 'text', placeholder: 'Culture, Gastronomie, Nature' }
+            ],
+            camping: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Tente, Sac de couchage, Réchaud' },
+                { name: 'dimensions', label: 'Dimensions', type: 'text', placeholder: '2 places, 4 places, 220x80cm' },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Polyester, Duvet, Aluminium' },
+                { name: 'usage', label: 'Usage', type: 'select', options: ['Été', 'Hiver', '3 saisons', '4 saisons'] },
+                { name: 'saison', label: 'Saison', type: 'select', options: ['Printemps', 'Été', 'Automne', 'Hiver', 'Toute saison'] }
+            ],
+            randonnee: [
+                { name: 'type', label: 'Type', type: 'text', placeholder: 'Sac à dos, Chaussures, Bâtons' },
+                { name: 'niveau', label: 'Niveau', type: 'select', options: ['Débutant', 'Intermédiaire', 'Expert'] },
+                { name: 'matiere', label: 'Matière', type: 'text', placeholder: 'Gore-Tex, Cuir, Carbone' },
+                { name: 'poids', label: 'Poids', type: 'text', placeholder: '1.2kg, 500g, Ultraléger' },
+                { name: 'impermeabilite', label: 'Imperméabilité', type: 'text', placeholder: 'Étanche, Déperlant, Respirant' }
+            ],
+            mobilite_urbaine: [
+                { name: 'type', label: 'Type', type: 'select', options: ['Trottinette', 'Vélo électrique', 'Hoverboard', 'Gyroroue'] },
+                { name: 'autonomie', label: 'Autonomie', type: 'text', placeholder: '25km, 50km, 8h' },
+                { name: 'vitesse', label: 'Vitesse', type: 'text', placeholder: '25 km/h, 20 km/h' },
+                { name: 'poids', label: 'Poids', type: 'text', placeholder: '12kg, 20kg, 25kg' },
+                { name: 'pliable', label: 'Pliable', type: 'select', options: ['Oui', 'Non'] }
+            ]
+        };
+
+        // Configuration des attributs par catégorie (pour la section attributs spécifiques)
+        const categoryAttributes = {
+            "Chaussures": [
+                { name: 'entretien', label: 'Instructions d\'entretien', type: 'text', placeholder: 'Cirage, Imperméabilisant' },
+                { name: 'garantie', label: 'Garantie', type: 'text', placeholder: '6 mois, 1 an' },
+                { name: 'origine', label: 'Pays d\'origine', type: 'text', placeholder: 'Italie, France' },
+                { name: 'collection', label: 'Collection', type: 'text', placeholder: 'Automne 2024' }
+            ],
+            "Vêtements": [
+                { name: 'entretien', label: 'Instructions d\'entretien', type: 'text', placeholder: 'Lavage 30°C' },
+                { name: 'coupe_detail', label: 'Détail coupe', type: 'text', placeholder: 'Cintrée, Droite' },
+                { name: 'origine', label: 'Pays d\'origine', type: 'text', placeholder: 'France, Portugal' },
+                { name: 'collection', label: 'Collection', type: 'text', placeholder: 'Printemps 2024' }
+            ],
+            "Sacs": [
+                { name: 'compartiments', label: 'Compartiments', type: 'text', placeholder: '3 poches, Organiseur' },
+                { name: 'fermeture', label: 'Type de fermeture', type: 'text', placeholder: 'Zip, Scratch, Aimant' },
+                { name: 'bretelles', label: 'Bretelles', type: 'text', placeholder: 'Réglables, Rembourrées' },
+                { name: 'garantie', label: 'Garantie', type: 'text', placeholder: '2 ans, Réparation' }
+            ],
+            "Montres": [
+                { name: 'mouvement', label: 'Mouvement', type: 'text', placeholder: 'Quartz, Automatique' },
+                { name: 'fonctions', label: 'Fonctions', type: 'text', placeholder: 'Chrono, Alarme, GPS' },
+                { name: 'verre', label: 'Verre', type: 'text', placeholder: 'Saphir, Minéral' },
+                { name: 'garantie', label: 'Garantie', type: 'text', placeholder: '2 ans internationale' }
+            ],
+            "Lunettes": [
+                { name: 'traitement', label: 'Traitement verres', type: 'text', placeholder: 'Anti-reflet, Photochromique' },
+                { name: 'ajustement', label: 'Ajustement', type: 'text', placeholder: 'Plaquettes réglables' },
+                { name: 'etui', label: 'Étui inclus', type: 'select', options: ['Oui', 'Non'] },
+                { name: 'garantie', label: 'Garantie', type: 'text', placeholder: '1 an, Casse accidentelle' }
+            ],
+            "Bijoux": [
+                { name: 'poincon', label: 'Poinçon', type: 'text', placeholder: '750, 925, Plaqué' },
+                { name: 'certificat', label: 'Certificat', type: 'text', placeholder: 'Authenticité, Gemmologique' },
+                { name: 'ecrin', label: 'Écrin', type: 'select', options: ['Oui', 'Non', 'Coffret'] },
+                { name: 'gravure', label: 'Gravure possible', type: 'select', options: ['Oui', 'Non'] }
+            ],
+            "Accessoires": [
+                { name: 'installation', label: 'Installation', type: 'text', placeholder: 'Plug & play, Outils requis' },
+                { name: 'garantie', label: 'Garantie', type: 'text', placeholder: '1 an, 2 ans' },
+                { name: 'certification', label: 'Certification', type: 'text', placeholder: 'CE, FCC, MFi' },
+                { name: 'accessoires_inclus', label: 'Accessoires inclus', type: 'text', placeholder: 'Câble, Notice, Outils' }
+            ],
+            "Beauté & soins": [
+                { name: 'application', label: 'Mode d\'application', type: 'text', placeholder: 'Matin et soir, Massage' },
+                { name: 'age_recommande', label: 'Âge recommandé', type: 'text', placeholder: '25+ ans, Tout âge' },
+                { name: 'tests', label: 'Tests dermatologiques', type: 'select', options: ['Oui', 'Non'] },
+                { name: 'origine', label: 'Origine', type: 'text', placeholder: 'France, Bio, Naturel' }
+            ],
+            "Parfums": [
+                { name: 'concentration', label: 'Concentration', type: 'text', placeholder: 'EDT, EDP, Parfum' },
+                { name: 'tenue', label: 'Tenue', type: 'text', placeholder: '4-6h, 8-12h' },
+                { name: 'sillage', label: 'Sillage', type: 'select', options: ['Discret', 'Modéré', 'Puissant'] },
+                { name: 'saison_ideale', label: 'Saison idéale', type: 'text', placeholder: 'Été, Hiver, Toute saison' }
+            ]
+        };
+
+        // Variables globales
+        let currentProduct = {};
+        let uploadedImages = {};
+        
+        // Configuration ImgBB API
+        const IMGBB_API_KEY = '96ff1e4e9603661db4d410f53df99454';
+        const IMGBB_API_URL = 'https://api.imgbb.com/1/upload';
+
+        // Fonction pour générer un ID produit automatique
+        function generateProductId() {
+            const categoryPrefixes = {
+                "Automobile": 'AUTO',
+                /*"Chaussures": 'CHAU',
+                "Sacs": 'SAC',
+                "Montres": 'MON',
+                "Lunettes": 'LUN',
+                "Bijoux": 'BIJ',
+                "Accessoires": 'ACC',
+                "Beauté & soins": 'BEAU',
+                "Parfums": 'PARF',
+                electronique: 'ELEC',
+                informatique: 'INFO',
+                gaming: 'GAME',
+                livres: 'LIV',
+                musique: 'MUS',
+                films_series: 'FILM',
+                jeux_jouets: 'JOUET',
+                "Sport & fitness": 'SPORT',
+                meubles: 'MEUB',
+                decoration: 'DECO',
+                jardin: 'JARD',
+                outillage: 'OUT',
+                automobile: 'AUTO',
+                moto_velo: 'MOTO',
+                alimentation: 'ALIM',
+                literie: 'LIT',
+                rideaux_stores: 'RID',
+                luminaires: 'LUM',
+                vaisselle: 'VAIS',
+                ustensiles_cuisine: 'UST',
+                rangement: 'RANG',
+                salle_bain: 'SDB',
+                cuisine_equipee: 'CUIS',
+                climatisation: 'CLIM',
+                chauffage: 'CHAUF',
+                instruments_musique: 'INST',
+                materiel_artistique: 'ART',
+                loisirs_creatifs: 'LOIS',
+                couture_tricot: 'COUT',
+                modelisme: 'MOD',
+                photographie: 'PHOTO',
+                scrapbooking: 'SCRAP',
+                calligraphie: 'CALL',
+                fournitures_scolaires: 'SCOL',
+                jeux_educatifs: 'EDUC',
+                livres_jeunesse: 'JEUN',
+                mobilier_enfant: 'ENF',
+                vetements_bebe: 'BEBE',
+                puericulture: 'PUER',
+                yoga_meditation: 'YOGA',
+                complements_alimentaires: 'COMP',
+                huiles_essentielles: 'HUILE',
+                materiel_medical: 'MED',
+                produits_hygiene: 'HYG',
+                soins_capillaires: 'CAP',
+                materiaux: 'MAT',
+                equipements_chantier: 'CHAN',
+                electricite: 'ELEC',
+                plomberie: 'PLOMB',
+                quincaillerie: 'QUIN',
+                equipements_protection: 'PROT',
+                bagages: 'BAG',
+                accessoires_voyage: 'VOY',
+                guides_touristiques: 'GUID',
+                camping: 'CAMP',
+                randonnee: 'RAND',
+                mobilite_urbaine: 'MOBIL'*/
+            };
+            
+            const prefix = 'VEH';
+            const timestamp = Date.now().toString().slice(-6);
+            const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            
+            return `${prefix}-${timestamp}${random}`;
+        }
+
+        // Gestion des images
+
+        document.getElementById('image').addEventListener('change', handleImagePreview);
+        document.getElementById('galleryImages').addEventListener('change', handleGalleryPreview);
+        document.getElementById('imageUrl').addEventListener('input', handleUrlPreview);
+        document.getElementById('uploadMainImage').addEventListener('click', uploadMainImageToImgBB);
+        document.getElementById('uploadGallery').addEventListener('click', uploadGalleryToImgBB);
+
+
+        function handleImagePreview(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('mainImagePreview');
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" class="w-32 h-32 object-cover rounded-lg border-2 border-orange-200">`;
+                };
+                reader.readAsDataURL(file);
+
+            }
+        }
+
+        function handleGalleryPreview(event) {
+            const files = Array.from(event.target.files);
+            const preview = document.getElementById('galleryPreview');
+
+            preview.innerHTML = '';
+            
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'w-20 h-20 object-cover rounded-lg border-2 border-orange-200';
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function handleUrlPreview(event) {
+            const url = event.target.value;
+            const preview = document.getElementById('mainImagePreview');
+            
+            if (url) {
+                preview.innerHTML = `<img src="${url}" class="w-32 h-32 object-cover rounded-lg border-2 border-orange-200" onerror="this.src=''; this.alt='Image non trouvée'; this.style.display='none';">`;
+            }
+        }
+
+
+
+        // Fonction pour uploader une image vers ImgBB
+        async function uploadImageToImgBB(file, name = 'image') {
+            const formData = new FormData();
+        formData.append('key', IMGBB_API_KEY);
+            formData.append('image', file);
+            formData.append('name', name);
+
+            try {
+                const response = await fetch(IMGBB_API_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    return {
+                        success: true,
+             url: result.data.url,
+                        display_url: result.data.display_url,
+                        delete_url: result.data.delete_url,
+                        thumb: result.data.thumb
+                    };
+                } else {
+                    throw new Error(result.error?.message || 'Erreur upload ImgBB');
+                }
+            } catch (error) {
+                console.error('Erreur upload ImgBB:', error);
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+
+        // Upload image principale vers ImgBB
+        async function uploadMainImageToImgBB() {
+
+            const fileInput = document.getElementById('image');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showNotification('❌ Veuillez sélectionner une image', 'error');
+             return;
+            }
+
+            const uploadStatus = document.getElementById('uploadStatus');
+            uploadStatus.style.display = 'block';
+            uploadStatus.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <span class="text-sm text-gray-600">Upload image principale vers ImgBB...</span>
+                </div>
+            `;
+
+            const result = await uploadImageToImgBB(file, `main-${Date.now()}`);
+
+            if (result.success) {
+                uploadedImages.main = result;
+                document.getElementById('imageUrl').value = result.display_url;
+
+                // Mise à jour de l'aperçu
+                const preview = document.getElementById('mainImagePreview');
+                preview.innerHTML = `
+                    <div class="space-y-2">
+                        <img src="${result.display_url}" class="w-32 h-32 object-cover rounded-lg border-2 border-green-200">
+                        <div class="text-xs text-green-600">✅ Uploadé sur ImgBB</div>
+                        <div class="text-xs text-gray-500 break-all">${result.display_url}</div>
+                    </div>
+                `;
+
+                uploadStatus.innerHTML = `
+                    <div class="flex items-center space-x-2 text-green-600">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-sm font-medium">Image principale uploadée avec succès !</span>
+                    </div>
+                `;
+
+                showNotification('✅ Image uploadée sur ImgBB !', 'success');
+            } else {
+                uploadStatus.innerHTML = ` 
+                    <div class="flex items-center space-x-2 text-red-600">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-sm font-medium">Erreur upload: ${result.error}</span>
+                    </div>
+                `;
+                
+                showNotification(`❌ Erreur upload: ${result.error}`, 'error');
+            }
+        }
+
+        // Upload galerie vers ImgBB
+        async function uploadGalleryToImgBB() {
+            const fileInput = document.getElementById('galleryImages');
+            const files = Array.from(fileInput.files);
+            
+            if (files.length === 0) {
+                showNotification('❌ Veuillez sélectionner des images', 'error');
+                return;
+            }
+
+            const uploadStatus = document.getElementById('uploadStatus');
+            const preview = document.getElementById('galleryPreview');
+            
+            uploadStatus.style.display = 'block';
+            preview.innerHTML = '';
+            uploadedImages.gallery = [];
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                
+                uploadStatus.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        <span class="text-sm text-gray-600">Upload image ${i + 1}/${files.length} vers ImgBB...</span>
+                    </div>
+                `;
+
+                const result = await uploadImageToImgBB(file, `gallery-${i + 1}-${Date.now()}`);
+                
+                if (result.success) {
+                    uploadedImages.gallery.push(result);
+                    
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'space-y-1';
+                    imgContainer.innerHTML = `
+                        <img src="${result.display_url}" class="w-20 h-20 object-cover rounded-lg border-2 border-green-200">
+                        <div class="text-xs text-green-600 text-center">✅ Uploadé</div>
+                    `;
+                    preview.appendChild(imgContainer);
+                } else {
+                    const errorContainer = document.createElement('div');
+                    errorContainer.className = 'space-y-1';
+                    errorContainer.innerHTML = `
+                        <div class="w-20 h-20 bg-red-100 rounded-lg border-2 border-red-200 flex items-center justify-center">
+                            <span class="text-red-500 text-xs">❌</span>
+                        </div>
+                        <div class="text-xs text-red-600 text-center">Erreur</div>
+                    `;
+                    preview.appendChild(errorContainer);
+                }
+            }
+
+            uploadStatus.innerHTML = `
+                <div class="flex items-center space-x-2 text-green-600">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="text-sm font-medium">Galerie uploadée ! ${uploadedImages.gallery.length} images sur ImgBB</span>
+                </div>
+            `;
+            
+            showNotification(`✅ ${uploadedImages.gallery.length} images uploadées !`, 'success');
+        }
+
+        // Upload toutes les images vers ImgBB
+        async function uploadAllImagesToImgBB() {
+            const mainFile = document.getElementById('image').files[0];
+            const galleryFiles = Array.from(document.getElementById('galleryImages').files);
+            
+            if (!mainFile && galleryFiles.length === 0) {
+                showNotification('❌ Aucune image à uploader', 'error');
+                return;
+            }
+
+            const uploadStatus = document.getElementById('uploadStatus');
+            uploadStatus.style.display = 'block';
+            
+            let totalUploaded = 0;
+            let totalFiles = (mainFile ? 1 : 0) + galleryFiles.length;
+
+            // Upload image principale
+            if (mainFile) {
+                uploadStatus.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        <span class="text-sm text-gray-600">Upload image principale (1/${totalFiles})...</span>
+                    </div>
+                `;
+
+                const result = await uploadImageToImgBB(mainFile, `main-${Date.now()}`);
+                if (result.success) {
+                    uploadedImages.main = result;
+                    document.getElementById('imageUrl').value = result.display_url;
+                    totalUploaded++;
+                }
+            }
+
+            // Upload galerie
+            if (galleryFiles.length > 0) {
+                uploadedImages.gallery = [];
+                const preview = document.getElementById('galleryPreview');
+                preview.innerHTML = '';
+
+                for (let i = 0; i < galleryFiles.length; i++) {
+                    const file = galleryFiles[i];
+                    const currentFile = (mainFile ? 1 : 0) + i + 1;
+                    
+                    uploadStatus.innerHTML = `
+                        <div class="flex items-center space-x-2">
+                            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                            <span class="text-sm text-gray-600">Upload galerie (${currentFile}/${totalFiles})...</span>
+                        </div>
+                    `;
+
+                    const result = await uploadImageToImgBB(file, `gallery-${i + 1}-${Date.now()}`);
+                    
+                    if (result.success) {
+                        uploadedImages.gallery.push(result);
+                        totalUploaded++;
+                        
+                        const imgContainer = document.createElement('div');
+                        imgContainer.className = 'space-y-1';
+                        imgContainer.innerHTML = `
+                            <img src="${result.display_url}" class="w-20 h-20 object-cover rounded-lg border-2 border-green-200">
+                            <div class="text-xs text-green-600 text-center">✅ Uploadé</div>
+                        `;
+                        preview.appendChild(imgContainer);
+                    }
+                }
+            }
+
+            uploadStatus.innerHTML = `
+                <div class="flex items-center space-x-2 text-green-600">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="text-sm font-medium">Upload terminé ! ${totalUploaded}/${totalFiles} images sur ImgBB</span>
+                </div>
+            `;
+            
+            showNotification(`✅ ${totalUploaded} images uploadées sur ImgBB !`, 'success');
+        }
+
+        // Collecte des données du formulaire
+        function collectFormData() {
+            const surDemande = 'Sur demande';
+            const data = {
+                // Ordre défini par l'utilisateur
+                id: document.getElementById('id').value || generateProductId(),
+                marque: document.getElementById('marque').value || surDemande,
+                modele: document.getElementById('modele').value || surDemande,
+                annee: document.getElementById('annee').value || surDemande,
+                prix: document.getElementById('prix').value ? `${document.getElementById('prix').value} FCFA` : surDemande,
+                kilometrage: document.getElementById('kilometrage').value || surDemande,
+                carburant: document.getElementById('carburant').value || surDemande,
+                transmission: document.getElementById('transmission').value || surDemande,                
+                image: uploadedImages.main ? uploadedImages.main.display_url : (document.getElementById('imageUrl').value || ''),
+                description: document.getElementById('description').value || surDemande,
+                galerie: uploadedImages.gallery ? uploadedImages.gallery.map(img => img.display_url).join(', ') : '',
+                fournisseur_nom: document.getElementById('fournisseur_nom').value || surDemande,
+                fournisseur_num: document.getElementById('fournisseur_num').value || surDemande,
+                fournisseur_mail: document.getElementById('fournisseur_mail').value || surDemande,
+                provenance: document.getElementById('provenance').value || surDemande,
+                immatriculation: document.getElementById('immatriculation').value || surDemande,
+                vin: document.getElementById('vin').value || surDemande,
+                nb_proprietaires: document.getElementById('nb_proprietaires').value || surDemande,
+                historique_entretien: document.getElementById('historique_entretien').value || surDemande,
+                accidents: document.getElementById('accidents').value || surDemande,
+                etat_moteur: document.getElementById('etat_moteur').value || surDemande,
+                etat_freins: document.getElementById('etat_freins').value || surDemande,
+                etat_pneus: document.getElementById('etat_pneus').value || surDemande,
+                etat_boite: document.getElementById('etat_boite').value || surDemande,
+                etat_carrosserie: document.getElementById('etat_carrosserie').value || surDemande,
+                etat_interieur: document.getElementById('etat_interieur').value || surDemande,
+                doc_controle_technique: document.getElementById('doc_controle_technique').value || surDemande,
+                garantie: document.getElementById('garantie').value || surDemande,
+                
+                // Images ImgBB
+                images: uploadedImages,
+                
+                // Métadonnées
+                dateCreation: new Date().toISOString(),
+                derniereModification: new Date().toISOString()
+            };
+
+            // Générer un ID si vide
+            if (!document.getElementById('id').value) {
+                document.getElementById('id').value = data.id;
+            }
+
+            return data;
+        }
+
+        // Aperçu du produit
+        function showPreview() {
+            const data = collectFormData();
+            const preview = document.getElementById('productPreview');
+            const content = document.getElementById('previewContent');
+            
+            content.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-bold text-gray-800 mb-3">${data.marque} ${data.modele}</h4>
+                        <div class="space-y-2 text-sm">
+                            <p><strong>ID:</strong> ${data.id}</p>
+                            <p><strong>Prix:</strong> ${data.prix}</p>
+                            <p><strong>Année:</strong> ${data.annee}</p>
+                            <p><strong>Kilométrage:</strong> ${data.kilometrage} km</p>
+                            <p><strong>Carburant:</strong> ${data.carburant}</p>
+                            <p><strong>Transmission:</strong> ${data.transmission}</p>
+                        </div>
+                        <div class="mt-4">
+                            <h5 class="font-semibold text-gray-700 mb-2">État & Historique:</h5>
+                            <div class="text-sm space-y-1">
+                                <p><strong>État Carrosserie:</strong> ${data.etat_carrosserie}</p>
+                                <p><strong>Historique Entretien:</strong> ${data.historique_entretien}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        ${data.description ? `
+                            <div class="mb-4">
+                                <h5 class="font-semibold text-gray-700 mb-2">Description:</h5>
+                                <p class="text-sm text-gray-600">${data.description}</p>
+                            </div>
+                        ` : ''}
+                        
+                        ${Object.keys(data.images).length > 0 ? `
+                            <div>
+                                <h5 class="font-semibold text-gray-700 mb-2">Images ImgBB:</h5>
+                                <div class="text-xs text-gray-600 space-y-1">
+                                    ${data.images.main ? `<p><strong>Principal:</strong> <a href="${data.images.main.display_url}" target="_blank" class="text-blue-600 hover:underline">${data.images.main.display_url}</a></p>` : ''}
+                                    ${data.images.gallery ? data.images.gallery.map((img, i) => 
+                                        `<p><strong>Galerie ${i+1}:</strong> <a href="${img.display_url}" target="_blank" class="text-blue-600 hover:underline">${img.display_url}</a></p>`
+                                    ).join('') : ''}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            preview.style.display = 'block';
+            preview.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Export Excel
+        function exportToExcel() {
+            if (products.length === 0) {
+                showNotification('Aucun véhicule à exporter. Ajoutez des véhicules à la liste d\'abord.', 'error');
+                return;
+            }
+
+            // Préparation des données pour Excel
+            const excelData = products.map(product => {
+                const { images, dateCreation, derniereModification, ...sheetData } = product;
+                return {
+                    ...sheetData,
+                    'Supprimer ImageURL': product.images.main ? product.images.main.delete_url : '',
+                    'Supprimer Galerie': product.images.gallery ? product.images.gallery.map(img => img.delete_url).join(', ') : '',
+                };
+                return sheetData;
+            });
+            
+            // Création du workbook
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Produits');
+            
+            // Ajuster la largeur des colonnes
+            const cols = Object.keys(excelData[0]).map(key => ({ wch: Math.max(key.length, 20) }));
+            ws['!cols'] = cols;
+
+            // Téléchargement
+            const fileName = `export-vehicules-${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            
+            // Notification
+            showNotification('✅ Export Excel réussi !', 'success');
+        }
+
+        // Export Google Sheets (simulation)
+        async function exportToGoogleSheets() {
+            const exportBtn = document.getElementById('exportGoogleBtn');
+            if (products.length === 0) { return; }
+
+            const scriptUrl = "https://script.google.com/macros/s/AKfycbz0i2CzziPdyiStACEWni_8Iy1RGKLUBi_6pVt16f54tZhmc8jibqcoRgfxB1f7UzH-3g/exec";
+            
+            // Préparation des données pour tous les produits
+            const allSheetData = products.map(product => {
+                const { images, dateCreation, derniereModification, ...sheetData } = product;
+                return {
+                    ...sheetData,
+                    'Supprimer ImageURL': product.images.main ? product.images.main.delete_url : '',
+                    'Supprimer Galerie': product.images.gallery ? product.images.gallery.map(img => img.delete_url).join(', ') : '',
+                };
+            });
+
+            exportBtn.disabled = true;
+            exportBtn.textContent = 'Envoi en cours...';
+
+            try {
+                const response = await fetch(scriptUrl, { method: 'POST', body: JSON.stringify(allSheetData), headers: { 'Content-Type': 'text/plain;charset=utf-8' } });
+                const result = await response.json();
+                if (result.result === 'success') {                    
+                    products = []; // Vider la liste après l'envoi
+                    updateProductsTable();
+                    exportBtn.textContent = '✅ Envoyé';
+                    // Le bouton reste désactivé
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error(`Erreur lors de l'envoi à Google Sheets: ${error.message}`);
+                exportBtn.disabled = false; // Réactiver le bouton seulement en cas d'erreur
+                exportBtn.textContent = '🚀 Envoyer';
+            }
+        }
+
+        // Notification système
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-20 right-4 p-4 rounded-lg shadow-lg z-50 flex items-center space-x-3 ${
+                type === 'success' ? 'bg-green-500 text-white' :
+                type === 'error' ? 'bg-red-600 text-white' :
+                'bg-gray-900 text-white'
+            }`;
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+            notification.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Event listeners pour les boutons
+        document.getElementById('previewBtn').addEventListener('click', showPreview);
+        document.getElementById('uploadAllBtn').addEventListener('click', uploadAllImagesToImgBB);
+        document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
+        document.getElementById('exportGoogleBtn').addEventListener('click', exportToGoogleSheets);
+
+        // Sauvegarde automatique dans localStorage
+        setInterval(() => {
+            const data = collectFormData();
+            localStorage.setItem('productFormData', JSON.stringify(data));
+        }, 30000); // Sauvegarde toutes les 30 secondes
+
+        // Tableau pour stocker les produits
+        let products = [];
+
+        // Fonction pour réinitialiser le formulaire
+        function resetForm() {
+            document.getElementById('productForm').reset();
+            document.getElementById('mainImagePreview').innerHTML = '';
+            document.getElementById('galleryPreview').innerHTML = '';
+            document.getElementById('uploadStatus').style.display = 'none';
+            document.getElementById('productPreview').style.display = 'none';
+            uploadedImages = {};
+            // Générer un nouvel ID
+            document.getElementById('id').value = generateProductId();
+        }
+
+        // Fonction pour mettre à jour le tableau des produits
+        function updateProductsTable() {
+            const table = document.getElementById('productsTable');
+            const tableHeader = document.getElementById('productsTableHeader');
+            const tableBody = document.getElementById('productsTableBody');
+            const noProductsMessage = document.getElementById('noProductsMessage');
+
+            if (products.length === 0) {
+                table.style.display = 'none';
+                noProductsMessage.style.display = 'block';
+                return;
+            }
+
+            table.style.display = 'table';
+            noProductsMessage.style.display = 'none';
+
+            // Collecter tous les en-têtes uniques
+            const baseHeaders = ['id', 'marque', 'modele', 'prix', 'image', 'Actions'];
+            const allHeaders = new Set(baseHeaders);
+            const headers = Array.from(allHeaders);
+
+            // Afficher les en-têtes
+            tableHeader.innerHTML = headers.map(h => `<th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">${h.replace(/_/g, ' ')}</th>`).join('') + `<th scope="col" class="relative px-6 py-3"><span class="sr-only">Supprimer</span></th>`;
+
+            // Afficher les lignes de produits
+            tableBody.innerHTML = '';
+            products.forEach((product, index) => {
+                const row = document.createElement('tr');
+                let rowHTML = '';
+                const productData = { ...product,
+                    'image': product.images.main ? `<a href="${product.images.main.display_url}" target="_blank" class="text-amber-400 hover:underline">Voir</a>` : 'N/A',
+                    'Actions': `<button class="text-red-400 hover:text-red-600" onclick="removeProduct(${index})">Supprimer</button>`
+                };
+                headers.forEach(header => {
+                    rowHTML += `<td class="px-3 py-4 whitespace-nowrap text-sm text-gray-300">${productData[header] || ''}</td>`;
+                });
+                row.innerHTML = rowHTML;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Fonction pour supprimer un produit de la liste
+        function removeProduct(index) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce véhicule de la liste ?')) {
+                products.splice(index, 1);
+                updateProductsTable();
+            }
+        }
+
+
+        // Restauration des données au chargement
+        window.addEventListener('load', () => {
+            const savedData = localStorage.getItem('productFormData');
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    // Restaurer les champs de base
+                    Object.keys(data).forEach(key => {
+                        const element = document.getElementById(key);
+                        if (element && data[key]) {
+                            element.value = data[key];
+                        }
+                    });
+                } catch (e) {
+                    console.log('Erreur lors de la restauration des données');
+                }
+            }
+
+            // Générer un ID au chargement si le champ est vide
+            if (!document.getElementById('id').value) {
+                document.getElementById('id').value = generateProductId();
+            }
+        });
+
+        // Ajout d'un produit à la liste
+        document.getElementById('addProductBtn').addEventListener('click', function() {
+            const data = collectFormData();
+            // La validation est moins stricte car on a des valeurs par défaut
+            products.push(data);
+            updateProductsTable();
+            resetForm();
+        });
+
+        // Enregistrement du Service Worker pour la PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+
+        // Initialisation de Select2
+        $(document).ready(function() {
+            $('.select2').select2({
+                tags: true,
+                placeholder: 'Choisir ou écrire...'
+            });
+        });
+    </script>
+</html>
